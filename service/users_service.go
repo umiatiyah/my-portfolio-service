@@ -45,16 +45,12 @@ func Register(c context.Context, user request.UserRequest) (response.UserRespons
 	return userResponse, err
 }
 
-func Login(c context.Context, auth request.AuthRequest) (response.Token, error) {
+func Login(c context.Context, auth request.AuthRequest) (response.TokenResponse, error) {
 	qry := "SELECT id, username, email, password FROM users WHERE username = $1"
 	row, err := infra.DB.Query(qry, auth.Username)
 	if err != nil {
 		log.Println("error get user")
-		return response.Token{
-			Token:  "",
-			Name:   "",
-			UserID: 0,
-		}, err
+		return response.TokenResponse{}, err
 	}
 
 	var user response.UserResponseVerify
@@ -64,12 +60,8 @@ func Login(c context.Context, auth request.AuthRequest) (response.Token, error) 
 
 	err = utils.VerifyPassword(user.Password, auth.Password)
 	if err != nil && err == bcrypt.ErrMismatchedHashAndPassword {
-		return response.Token{
-			Token:  "",
-			Name:   "",
-			UserID: 0,
-		}, err
+		return response.TokenResponse{}, err
 	}
-	tok, _ := middleware.CreateToken(user.Id, auth.Username)
-	return tok, nil
+	token, _ := middleware.CreateToken(user.Id, auth.Username)
+	return token, nil
 }

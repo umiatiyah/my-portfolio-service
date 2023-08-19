@@ -2,6 +2,7 @@ package routing
 
 import (
 	"portfolio-go/handler"
+	"portfolio-go/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,10 +20,13 @@ func InitializeRoute() {
 
 	users := r.Group("/users")
 	{
+		users.Use(middleware.AuthMiddleware())
 		// Define routes within the group
 		users.GET("/", handler.GetUsers)
-		users.POST("/login", handler.Login)
-		users.POST("/register", handler.Register)
 	}
+
+	r.POST("/login", handler.Login)
+	r.POST("/register", handler.Register)
+
 	r.Run() // listen and serve on 0.0.0.0:8080
 }

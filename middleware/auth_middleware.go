@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"portfolio-go/response"
@@ -10,32 +11,45 @@ import (
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/gin-gonic/gin"
 )
 
-func CreateToken(id int, name string) (response.Token, error) {
+var (
+	SECRET_KEY = os.Getenv("SECRET_KEY")
+)
+
+func CreateToken(id int, name string) (response.TokenResponse, error) {
 	if id == 0 {
-		return response.Token{
-			Token:  "undefined token",
-			Name:   "user not valid!",
-			UserID: 0,
-		}, nil
+		return response.TokenResponse{}, nil
 	}
 	expiredTime, err := strconv.Atoi(os.Getenv("TOKEN_EXPIRATION"))
 	if err != nil {
 		expiredTime = 1 //Token expires after 1 hour
 	}
-	claims := jwt.MapClaims{}
-	claims["authorized"] = true
-	claims["user_id"] = id
-	claims["exp"] = time.Now().Add(time.Hour * time.Duration(expiredTime)).Unix()
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tok, _ := token.SignedString([]byte(os.Getenv("API_SECRET")))
-	return response.Token{
-		Token:  tok,
-		Name:   name,
-		UserID: id,
-	}, nil
 
+	SECRET_AUDIENCE := os.Getenv("SECRET_AUDIENCE")
+	claims := &response.JWTClaim{
+		Username: name,
+		StandardClaims: jwt.StandardClaims{
+			Subject:   "JWT Portfolio",
+			Id:        strconv.Itoa(id),
+			Audience:  SECRET_AUDIENCE,
+			ExpiresAt: time.Now().Add(time.Hour * time.Duration(expiredTime)).Unix(),
+		},
+	}
+
+	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte(SECRET_KEY))
+
+	if err != nil {
+		log.Println(err)
+	}
+
+	return response.TokenResponse{
+		Username:    claims.Username,
+		TokenAccess: token,
+		TokenType:   "Bearer",
+		ExpiresAt:   claims.StandardClaims.ExpiresAt,
+	}, err
 }
 
 func TokenValid(r *http.Request) error {
@@ -44,7 +58,7 @@ func TokenValid(r *http.Request) error {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 		}
-		return []byte(os.Getenv("API_SECRET")), nil
+		return []byte(SECRET_KEY), nil
 	})
 	if err != nil {
 		return err
@@ -68,30 +82,16 @@ func ExtractToken(r *http.Request) string {
 	return ""
 }
 
-func ExtractTokenID(r *http.Request) (uint32, string, error) {
-
-	tokenString := ExtractToken(r)
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
-		}
-		return []byte(os.Getenv("API_SECRET")), nil
-	})
-	if err != nil {
-		return 0, "", err
-	}
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if ok && token.Valid {
-		id, err := strconv.ParseUint(fmt.Sprintf("%.0f", claims["user_id"]), 10, 32)
+func AuthMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		err := TokenValid(c.Request)
 		if err != nil {
-			return 0, "", err
+			c.Header("Content-Type", "application/json")
+			response.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized")
+			log.Println("Unauthorized")
+			c.Abort()
+			return
 		}
-		role := claims["role"]
-		if str, ok := role.(string); ok {
-			return uint32(id), str, nil
-		} else {
-			return 0, "", nil
-		}
+		c.Next()
 	}
-	return 0, "", nil
 }
