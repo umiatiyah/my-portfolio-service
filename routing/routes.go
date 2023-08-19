@@ -12,14 +12,19 @@ func InitializeRoute() *gin.Engine {
 
 	r.GET("/health", handler.CheckHealth)
 
+	auth := r.Group("/auth")
+	{
+		auth.POST("/login", handler.Login)
+		auth.POST("/register", handler.Register)
+	}
+
 	users := r.Group("/users")
 	{
 		users.Use(middleware.AuthMiddleware())
 		users.GET("/", handler.GetUsers)
 	}
 
-	r.POST("/login", handler.Login)
-	r.POST("/register", handler.Register)
+	r.SetTrustedProxies(nil)
 
 	return r
 }
