@@ -4,17 +4,20 @@ import (
 	"context"
 	"log"
 	"portfolio-go/infra"
+	"portfolio-go/middleware"
 	"portfolio-go/request"
 	"portfolio-go/response"
 	"portfolio-go/utils"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 func GetUsers(c context.Context) ([]response.UserResponse, error) {
 	qry := "SELECT username, email FROM users"
 	users, err := infra.DB.Query(qry)
 	if err != nil {
-		log.Fatalln("error querying")
+		log.Println("error querying")
 		return nil, err
 	}
 
@@ -32,7 +35,7 @@ func Register(c context.Context, user request.UserRequest) (response.UserRespons
 			VALUES ($1, $2, $3, $4, $5, $6) RETURNING username, email`
 	userInserted, err := infra.DB.Query(qry, user.Username, utils.HashAndSalt([]byte(user.Password)), user.Email, user.Status, user.CreatedBy, time.Now())
 	if err != nil {
-		log.Fatalln("error inserting user")
+		log.Println("error inserting user")
 	}
 
 	var userResponse response.UserResponse
@@ -40,4 +43,33 @@ func Register(c context.Context, user request.UserRequest) (response.UserRespons
 		userInserted.Scan(&userResponse.Username, &userResponse.Email)
 	}
 	return userResponse, err
+}
+
+func Login(c context.Context, auth request.AuthRequest) (response.Token, error) {
+	qry := "SELECT id, username, email, password FROM users WHERE username = $1"
+	row, err := infra.DB.Query(qry, auth.Username)
+	if err != nil {
+		log.Println("error get user")
+		return response.Token{
+			Token:  "",
+			Name:   "",
+			UserID: 0,
+		}, err
+	}
+
+	var user response.UserResponseVerify
+	for row.Next() {
+		row.Scan(&user.Id, &user.Username, &user.Email, &user.Password)
+	}
+
+	err = utils.VerifyPassword(user.Password, auth.Password)
+	if err != nil && err == bcrypt.ErrMismatchedHashAndPassword {
+		return response.Token{
+			Token:  "",
+			Name:   "",
+			UserID: 0,
+		}, err
+	}
+	tok, _ := middleware.CreateToken(user.Id, auth.Username)
+	return tok, nil
 }

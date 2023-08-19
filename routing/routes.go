@@ -21,6 +21,7 @@ func InitializeRoute() {
 	{
 		// Define routes within the group
 		users.GET("/", handler.GetUsers)
+		users.POST("/login", handler.Login)
 		users.POST("/register", handler.Register)
 	}
 	r.Run() // listen and serve on 0.0.0.0:8080
