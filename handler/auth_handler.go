@@ -25,7 +25,7 @@ func Login(c *gin.Context) {
 			http.StatusUnprocessableEntity,
 			err.Error(),
 		)
-		log.Fatalln("error login: ", err.Error())
+		log.Println("error login: ", err.Error())
 		return
 	}
 

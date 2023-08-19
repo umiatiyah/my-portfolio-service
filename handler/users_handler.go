@@ -18,7 +18,7 @@ func GetUsers(c *gin.Context) {
 			http.StatusUnprocessableEntity,
 			err.Error(),
 		)
-		log.Fatalln("error get data users: ", err.Error())
+		log.Println("error get data users: ", err.Error())
 		return
 	}
 
@@ -44,7 +44,7 @@ func Register(c *gin.Context) {
 			http.StatusUnprocessableEntity,
 			err.Error(),
 		)
-		log.Fatalln("error register: ", err.Error())
+		log.Println("error register: ", err.Error())
 		return
 	}
 

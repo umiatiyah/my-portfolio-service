@@ -9,8 +9,8 @@ import (
 
 func CheckHealth(c *gin.Context) {
 	err := service.CheckHealth(c)
-	if (err != nil){
-		log.Fatalln("error checking health")
+	if err != nil {
+		log.Println("error checking health")
 	}
 	c.JSON(200, gin.H{
 		"message": err,
