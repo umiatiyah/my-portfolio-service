@@ -1,14 +1,10 @@
 package response
 
-import (
-	"portfolio-go/model"
-)
-
 type UserProfileResponse struct {
-	UserProfile model.UserProfile   `json:"user_profile"`
-	SocialMedia []model.SocialMedia `json:"social_media"`
-	Hobby       []model.Hobby       `json:"hobby"`
-	Experience  []model.Experience  `json:"experience"`
-	Education   []model.Education   `json:"education"`
-	Contact     []model.Contact     `json:"contact"`
+	UserProfile interface{} `json:"user_profile"`
+	SocialMedia interface{} `json:"social_media"`
+	Hobby       interface{} `json:hobby"`
+	Experience  interface{} `json:"experience"`
+	Education   interface{} `json:"education"`
+	Contact     interface{} `json:"contact"`
 }
