@@ -24,8 +24,6 @@ func InitializeRoute() *gin.Engine {
 		users.GET("/", handler.GetUsers)
 	}
 
-	r.GET("/userprofile/:userId", handler.GetUserProfile)
-
 	r.SetTrustedProxies(nil)
 
 	return r
