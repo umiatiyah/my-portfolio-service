@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"log"
 	"portfolio-go/infra"
 	"portfolio-go/middleware"
@@ -56,6 +57,10 @@ func Login(c context.Context, auth request.AuthRequest) (response.TokenResponse,
 	var user response.UserResponseVerify
 	for row.Next() {
 		row.Scan(&user.Id, &user.Username, &user.Email, &user.Password)
+	}
+
+	if user.Id == 0 {
+		return response.TokenResponse{}, errors.New("user not found")
 	}
 
 	err = utils.VerifyPassword(user.Password, auth.Password)
