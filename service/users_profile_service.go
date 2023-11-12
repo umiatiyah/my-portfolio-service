@@ -12,17 +12,29 @@ func GetUserProfile(c context.Context, id int) (response.UserProfileResponse, er
 	qry := "SELECT up.* FROM user_profile up WHERE id = $1"
 	users, err := infra.DB.Query(qry, id)
 	if err != nil {
-		log.Println("error querying")
+		log.Println("error querying", qry)
 		return response.UserProfileResponse{}, err
 	}
 
+	var user response.ProfileResponse
 	var userList response.UserProfileResponse
 	for users.Next() {
-		var user model.UserProfile
 		users.Scan(&user.Id, &user.UserId, &user.Fullname, &user.Country, &user.Address, &user.IsFreelance, &user.PhoneNumber, &user.Status,
-			&user.CreatedBy, &user.CreatedAt, &user.UpdatedBy, &user.UpdatedAt)
-		userList.UserProfile = user
+			&user.CreatedBy, &user.CreatedAt, &user.UpdatedBy, &user.UpdatedAt, &user.Description)
 	}
+
+	qry2 := "select (select e.title from experience e where e.user_profile_id = $1 order by e.sequence limit 1) as current_job, (select sm.link from social_media sm where sm.title = 'github' and sm.user_profile_id = $1 limit 1) as github_link"
+	profile, err := infra.DB.Query(qry2, id)
+	if err != nil {
+		log.Println("error querying", qry2)
+		return response.UserProfileResponse{}, err
+	}
+
+	for profile.Next() {
+		profile.Scan(&user.CurrentJob, &user.GithubLink)
+	}
+
+	userList.UserProfile = user
 
 	socialMedias, err := GetUserSocialMedia(c, id)
 	hobbies, err := GetUserHobby(c, id)
@@ -56,7 +68,7 @@ func GetUserSocialMedia(c context.Context, userProfileId int) ([]model.SocialMed
 }
 
 func GetUserHobby(c context.Context, userProfileId int) ([]model.Hobby, error) {
-	qry := "SELECT h.* FROM hobby h WHERE user_profile_id = $1"
+	qry := "SELECT h.* FROM hobby h WHERE user_profile_id = $1 ORDER BY Sequence"
 	hobbies, err := infra.DB.Query(qry, userProfileId)
 	if err != nil {
 		log.Println("error querying")
@@ -74,7 +86,7 @@ func GetUserHobby(c context.Context, userProfileId int) ([]model.Hobby, error) {
 }
 
 func GetUserExperience(c context.Context, userProfileId int) ([]model.Experience, error) {
-	qry := "SELECT e.* FROM experience e WHERE user_profile_id = $1"
+	qry := "SELECT e.* FROM experience e WHERE user_profile_id = $1 ORDER BY Sequence"
 	experiences, err := infra.DB.Query(qry, userProfileId)
 	if err != nil {
 		log.Println("error querying")
@@ -93,7 +105,7 @@ func GetUserExperience(c context.Context, userProfileId int) ([]model.Experience
 }
 
 func GetUserEducation(c context.Context, userProfileId int) ([]model.Education, error) {
-	qry := "SELECT e.* FROM education e WHERE user_profile_id = $1"
+	qry := "SELECT e.* FROM education e WHERE user_profile_id = $1 ORDER BY Sequence"
 	educations, err := infra.DB.Query(qry, userProfileId)
 	if err != nil {
 		log.Println("error querying")
@@ -112,7 +124,7 @@ func GetUserEducation(c context.Context, userProfileId int) ([]model.Education, 
 }
 
 func GetUserContact(c context.Context, userProfileId int) ([]model.Contact, error) {
-	qry := "SELECT c.* FROM contact c WHERE user_profile_id = $1"
+	qry := "SELECT c.* FROM contact c WHERE user_profile_id = $1 ORDER BY Sequence"
 	contacts, err := infra.DB.Query(qry, userProfileId)
 	if err != nil {
 		log.Println("error querying")
