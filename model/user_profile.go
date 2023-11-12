@@ -13,4 +13,5 @@ type UserProfile struct {
 	CreatedAt   string `json:"created_at"`
 	UpdatedBy   string `json:"updated_by"`
 	UpdatedAt   string `json:"updated_at"`
+	Description string `json:"description"`
 }
