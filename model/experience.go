@@ -7,13 +7,13 @@ type Experience struct {
 	UserProfileId int         `json:"user_profile_id"`
 	Title         string      `json:"title"`
 	StartDate     string      `json:"start_date"`
-	EndDate       string      `json:"end_date"`
+	EndDate       null.Time   `json:"end_date"`
 	CompanyName   string      `json:"company_name"`
-	Description   string      `json:"description"`
+	Description   null.String `json:"description"`
 	Sequence      int         `json:"sequence"`
 	Status        int         `json:"status"`
 	CreatedBy     string      `json:"created_by"`
 	CreatedAt     string      `json:"created_at"`
 	UpdatedBy     null.String `json:"updated_by"`
-	UpdatedAt     null.String `json:"updated_at"`
+	UpdatedAt     null.Time   `json:"updated_at"`
 }

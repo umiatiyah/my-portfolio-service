@@ -11,5 +11,5 @@ type Users struct {
 	CreatedBy string      `json:"created_by" db:"created_by"`
 	CreatedAt string      `json:"created_at" db:"created_at"`
 	UpdatedBy null.String `json:"updated_by" db:"updated_by"`
-	UpdatedAt null.String `json:"updated_at" db:"updated_at"`
+	UpdatedAt null.Time   `json:"updated_at" db:"updated_at"`
 }

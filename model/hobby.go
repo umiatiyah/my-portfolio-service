@@ -12,5 +12,5 @@ type Hobby struct {
 	CreatedBy     string      `json:"created_by"`
 	CreatedAt     string      `json:"created_at"`
 	UpdatedBy     null.String `json:"updated_by"`
-	UpdatedAt     null.String `json:"updated_at"`
+	UpdatedAt     null.Time   `json:"updated_at"`
 }
