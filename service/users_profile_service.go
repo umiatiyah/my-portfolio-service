@@ -23,7 +23,9 @@ func GetUserProfile(c context.Context, id int) (response.UserProfileResponse, er
 			&user.CreatedBy, &user.CreatedAt, &user.UpdatedBy, &user.UpdatedAt, &user.Description)
 	}
 
-	qry2 := "select (select e.title from experience e where e.user_profile_id = $1 order by e.sequence limit 1) as current_job, (select sm.link from social_media sm where sm.title = 'github' and sm.user_profile_id = $1 limit 1) as github_link"
+	var qry2 string = "select (select e.title from experience e where e.user_profile_id = $1 order by e.sequence limit 1) as current_job, " +
+		"(select sm.link from social_media sm where sm.title = 'github' and sm.user_profile_id = $1 limit 1) as github_link, " +
+		"(select sm.link from social_media sm where sm.title = 'gmail' and sm.user_profile_id = $1 limit 1) as email_link"
 	profile, err := infra.DB.Query(qry2, id)
 	if err != nil {
 		log.Println("error querying", qry2)
@@ -31,7 +33,7 @@ func GetUserProfile(c context.Context, id int) (response.UserProfileResponse, er
 	}
 
 	for profile.Next() {
-		profile.Scan(&user.CurrentJob, &user.GithubLink)
+		profile.Scan(&user.CurrentJob, &user.GithubLink, &user.EmailLink)
 	}
 
 	userList.UserProfile = user
