@@ -8,12 +8,12 @@ type UserProfile struct {
 	Fullname    string      `json:"fullname"`
 	Country     string      `json:"country"`
 	Address     string      `json:"address"`
-	IsFreelance bool        `json:"is_freelance"`
-	PhoneNumber string      `json:"phone_number"`
+	IsFreelance null.Bool   `json:"is_freelance"`
+	PhoneNumber null.String `json:"phone_number"`
 	Status      int         `json:"status"`
 	CreatedBy   string      `json:"created_by"`
 	CreatedAt   string      `json:"created_at"`
 	UpdatedBy   null.String `json:"updated_by"`
-	UpdatedAt   null.String `json:"updated_at"`
-	Description string      `json:"description"`
+	UpdatedAt   null.Time   `json:"updated_at"`
+	Description null.String `json:"description"`
 }
