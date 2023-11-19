@@ -40,12 +40,10 @@ func GetUserProfile(c context.Context, id int) (response.UserProfileResponse, er
 	hobbies, err := GetUserHobby(c, id)
 	experience, err := GetUserExperience(c, id)
 	education, err := GetUserEducation(c, id)
-	contacts, err := GetUserContact(c, id)
 	userList.SocialMedia = socialMedias
 	userList.Hobby = hobbies
 	userList.Experience = experience
 	userList.Education = education
-	userList.Contact = contacts
 	return userList, nil
 }
 
@@ -121,22 +119,4 @@ func GetUserEducation(c context.Context, userProfileId int) ([]model.Education, 
 		educationList = append(educationList, education)
 	}
 	return educationList, nil
-}
-
-func GetUserContact(c context.Context, userProfileId int) ([]model.Contact, error) {
-	qry := "SELECT c.* FROM contact c WHERE user_profile_id = $1 ORDER BY Sequence"
-	contacts, err := infra.DB.Query(qry, userProfileId)
-	if err != nil {
-		log.Println("error querying")
-		return nil, err
-	}
-
-	var contactList []model.Contact
-	for contacts.Next() {
-		var contact model.Contact
-		contacts.Scan(&contact.Id, &contact.UserProfileId, &contact.Address, &contact.ContactPerson, &contact.Sequence, &contact.Status,
-			&contact.CreatedBy, &contact.CreatedAt, &contact.UpdatedBy, &contact.UpdatedAt)
-		contactList = append(contactList, contact)
-	}
-	return contactList, nil
 }
