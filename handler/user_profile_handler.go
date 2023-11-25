@@ -5,15 +5,17 @@ import (
 	"net/http"
 	"portfolio-go/response"
 	"portfolio-go/service"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
 func GetUserProfile(c *gin.Context) {
-	userid := c.Param("userId")
-	id, err := strconv.Atoi(userid)
-	users, err := service.GetUserProfile(c, id)
+	username := c.Query("username")
+	if username == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "username is required"})
+		return
+	}
+	users, err := service.GetUserProfile(c, username)
 	if err != nil {
 		response.ErrorResponse(
 			c,
