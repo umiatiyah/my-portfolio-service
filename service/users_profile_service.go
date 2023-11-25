@@ -8,9 +8,9 @@ import (
 	"portfolio-go/response"
 )
 
-func GetUserProfile(c context.Context, id int) (response.UserProfileResponse, error) {
-	qry := "SELECT up.* FROM user_profile up WHERE id = $1"
-	users, err := infra.DB.Query(qry, id)
+func GetUserProfile(c context.Context, username string) (response.UserProfileResponse, error) {
+	qry := "SELECT up.* FROM user_profile up JOIN users u ON up.user_id = u.id WHERE u.username = $1"
+	users, err := infra.DB.Query(qry, username)
 	if err != nil {
 		log.Println("error querying", qry)
 		return response.UserProfileResponse{}, err
@@ -26,7 +26,7 @@ func GetUserProfile(c context.Context, id int) (response.UserProfileResponse, er
 	var qry2 string = "select (select e.title from experience e where e.user_profile_id = $1 order by e.sequence limit 1) as current_job, " +
 		"(select sm.link from social_media sm where sm.title = 'github' and sm.user_profile_id = $1 limit 1) as github_link, " +
 		"(select sm.link from social_media sm where sm.title = 'gmail' and sm.user_profile_id = $1 limit 1) as email_link"
-	profile, err := infra.DB.Query(qry2, id)
+	profile, err := infra.DB.Query(qry2, user.Id)
 	if err != nil {
 		log.Println("error querying", qry2)
 		return response.UserProfileResponse{}, err
@@ -38,10 +38,10 @@ func GetUserProfile(c context.Context, id int) (response.UserProfileResponse, er
 
 	userList.UserProfile = user
 
-	socialMedias, err := GetUserSocialMedia(c, id)
-	hobbies, err := GetUserHobby(c, id)
-	experience, err := GetUserExperience(c, id)
-	education, err := GetUserEducation(c, id)
+	socialMedias, err := GetUserSocialMedia(c, user.Id)
+	hobbies, err := GetUserHobby(c, user.Id)
+	experience, err := GetUserExperience(c, user.Id)
+	education, err := GetUserEducation(c, user.Id)
 	userList.SocialMedia = socialMedias
 	userList.Hobby = hobbies
 	userList.Experience = experience
