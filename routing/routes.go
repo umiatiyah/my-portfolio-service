@@ -34,6 +34,16 @@ func InitializeRoute() *gin.Engine {
 
 	r.GET("/userprofile", handler.GetUserProfile)
 
+	socialMedia := r.Group("/socialmedia")
+	{
+		socialMedia.Use(middleware.AuthMiddleware())
+		socialMedia.GET("/:id", handler.GetDetailSocialMedia)
+		socialMedia.POST("/", handler.CreateSocialMedia)
+		socialMedia.PUT("/", handler.UpdateSocialMedia)
+		socialMedia.DELETE("/:id", handler.DeleteSocialMedia)
+		socialMedia.GET("/user", handler.GetSocialMediasByUser)
+	}
+
 	r.SetTrustedProxies(nil)
 
 	return r
